@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0"
+  xmlns:atom="http://www.w3.org/2005/Atom"
+  xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Pro屋</title>
+    <link>http://example.com/</link>
+    
+    <atom:link href="http://example.com/rss2.xml" rel="self" type="application/rss+xml"/>
+    
+    <description>选择有时候比努力更重要</description>
+    <pubDate>Fri, 12 Mar 2021 12:14:05 GMT</pubDate>
+    <generator>http://hexo.io/</generator>
+    
+    <item>
+      <title>jwt</title>
+      <link>http://example.com/2021/03/12/jwt/</link>
+      <guid>http://example.com/2021/03/12/jwt/</guid>
+      <pubDate>Fri, 12 Mar 2021 12:11:05 GMT</pubDate>
+      
+        
+        
+      <description>&lt;p&gt;&lt;strong&gt;jwt的优点：&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;1. 可扩展性好&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;应用程序分布式部署的情况下，session需要做多机数据共享，通常可以存在数据库或者redis里面。而jwt不需要。&lt;br&gt;**&lt;br&gt;2. 无</description>
+        
+      
+      
+      
+      <content:encoded><![CDATA[<p><strong>jwt的优点：</strong></p><p><strong>1. 可扩展性好</strong></p><p>应用程序分布式部署的情况下，session需要做多机数据共享，通常可以存在数据库或者redis里面。而jwt不需要。<br>**<br>2. 无状态**</p><p>jwt不在服务端存储任何状态。RESTful API的原则之一是无状态，发出请求时，总会返回带有参数的响应，不会产生附加影响。用户的认证状态引入这种附加影响，这破坏了这一原则。另外jwt的载荷中可以存储一些常用信息，用于交换信息，有效地使用 JWT，可以降低服务器查询数据库的次数。</p><p>jwt的缺点：</p><p><strong>1. 安全性</strong></p><p>由于jwt的payload是使用base64编码的，并没有加密，因此jwt中不能存储敏感数据。而session的信息是存在服务端的，相对来说更安全。</p><p><strong>2. 性能</strong></p><p>jwt太长。由于是无状态使用JWT，所有的数据都被放到JWT里，如果还要进行一些数据交换，那载荷会更大，经过编码之后导致jwt非常长，cookie的限制大小一般是4k，cookie很可能放不下，所以jwt一般放在local storage里面。并且用户在系统中的每一次http请求都会把jwt携带在Header里面，http请求的Header可能比Body还要大。而sessionId只是很短的一个字符串，因此使用jwt的http请求比使用session的开销大得多。</p><p><strong>3. 一次性</strong></p><p>无状态是jwt的特点，但也导致了这个问题，jwt是一次性的。想修改里面的内容，就必须签发一个新的jwt。</p><p>（1）无法废弃</p><p>通过上面jwt的验证机制可以看出来，一旦签发一个jwt，在到期之前就会始终有效，无法中途废弃。例如你在payload中存储了一些信息，当信息需要更新时，则重新签发一个jwt，但是由于旧的jwt还没过期，拿着这个旧的jwt依旧可以登录，那登录后服务端从jwt中拿到的信息就是过时的。为了解决这个问题，我们就需要在服务端部署额外的逻辑，例如设置一个黑名单，一旦签发了新的jwt，那么旧的就加入黑名单（比如存到redis里面），避免被再次使用。</p><p>（2）续签</p><p>如果你使用jwt做会话管理，传统的cookie续签方案一般都是框架自带的，session有效期30分钟，30分钟内如果有访问，有效期被刷新至30分钟。一样的道理，要改变jwt的有效时间，就要签发新的jwt。最简单的一种方式是每次请求刷新jwt，即每个http请求都返回一个新的jwt。这个方法不仅暴力不优雅，而且每次请求都要做jwt的加密解密，会带来性能问题。另一种方法是在redis中单独为每个jwt设置过期时间，每次访问时刷新jwt的过期时间。</p>]]></content:encoded>
+      
+      
+      
+      
+      <comments>http://example.com/2021/03/12/jwt/#disqus_thread</comments>
+      
+    </item>
+    
+    <item>
+      <title>ElasticSearch</title>
+      <link>http://example.com/2021/03/05/ElasticSearch/</link>
+      <guid>http://example.com/2021/03/05/ElasticSearch/</guid>
+      <pubDate>Fri, 05 Mar 2021 15:11:22 GMT</pubDate>
+      
+        
+        
+      <description>&lt;p&gt;正向索引：文档-&amp;gt;索引（文档先分词，再与索引匹配）&lt;br&gt;&lt;img src=&quot;https://pic1.zhimg.com/80/v2-a1e4026a11e5e4cb9250d0f2492dc14a_720w.jpg?source=1940ef5c&quot;&gt;&lt;/p&gt;
+&lt;p</description>
+        
+      
+      
+      
+      <content:encoded><![CDATA[<p>正向索引：文档-&gt;索引（文档先分词，再与索引匹配）<br><img src="https://pic1.zhimg.com/80/v2-a1e4026a11e5e4cb9250d0f2492dc14a_720w.jpg?source=1940ef5c"></p><p>倒排索引：索引-&gt;文档（索引作为关键词，文档作为Value）<br><img src="https://pic1.zhimg.com/80/v2-1293ebbcc98764f0d8c3cb8d31b79ae7_720w.jpg?source=1940ef5c"></p><p>ElasticSearch查询方式有哪几种？ </p><p>1.查询所有(match_all) </p><p>2.匹配查询(match) 会把查询条件进行分词，然后进行查询，多个词条之间默认关系是 OR。</p><p> 3.词条查询(term) 用于精确值 匹配，这些精确值可能是数字、时间、布尔或者那些未分词 的字符串。 </p><p>4.布尔组合(bool) 各种其它查询通过 must（与）、 must_not（非）、 should（或） 的方式进行组合。 </p><p>5.范围查询(range) 找出那些落在指定区间内的数字或者时间。 </p><p>6.模糊查询(fuzzy) fuzzy查询是 term`查询的模糊等价。它允许用户搜索词条与实际词 条的拼写出现偏差，但是偏差的编辑距离不得超过 2。</p>]]></content:encoded>
+      
+      
+      
+      
+      <comments>http://example.com/2021/03/05/ElasticSearch/#disqus_thread</comments>
+      
+    </item>
+    
+    <item>
+      <title>Rest_ful</title>
+      <link>http://example.com/2021/03/05/Rest_ful/</link>
+      <guid>http://example.com/2021/03/05/Rest_ful/</guid>
+      <pubDate>Fri, 05 Mar 2021 09:17:26 GMT</pubDate>
+      
+        
+        
+      <description>&lt;p&gt;资源。首先要明确资源就是网络上的一个实体，可以是文本、图片、音频、视频。资源总是以一定的格式来表现自己。文本用txt、html；图片用JPG、JPEG等等。而JSON是RESTful API中最常用的资源表现格式。&lt;/p&gt;
+&lt;p&gt;统一接口。对于业务数据的CRUD，RESTf</description>
+        
+      
+      
+      
+      <content:encoded><![CDATA[<p>资源。首先要明确资源就是网络上的一个实体，可以是文本、图片、音频、视频。资源总是以一定的格式来表现自己。文本用txt、html；图片用JPG、JPEG等等。而JSON是RESTful API中最常用的资源表现格式。</p><p>统一接口。对于业务数据的CRUD，RESTful 用HTTP方法与之对应</p><p>URI。统一资源标识符，它可以唯一标识一个资源。注意到，URL(统一资源定位符)是一种URI，因为它可以唯一标志资源。但URL != URI。应该说URL 是URI的子集。因为URL使用路径来唯一标识资源，这只是唯一标识资源的一种方式。还可以用一个唯一编号来标识资源，如example.html.fuce2da23。只不过这种方式并不被广泛使用。总之，要在概念上对URL和URI有所区分。</p><p>无状态。 所谓无状态是指所有资源都可以用URI定位，而且这个定位与其他资源无关，不会因为其他资源的变动而变化。这里引入一个幂等性的概念：无论一个操作被执行一次还是多次，执行后的效果都相同。比如对某资源发送GET请求，如果访问一次和访问十次获得的数据一样，那么就说这个请求具有幂等性。</p><p>URL中只能有名词，不能出现动词。这是因为在REST要求对资源的操作由HTTP 方法给出，而方法是由HTTP 请求报文头部给出的，自然不需要在URL中暴露操作方式。</p><p><a href="https://www.jianshu.com/p/dbee5199cf23">https://www.jianshu.com/p/dbee5199cf23</a></p><p>转载至&lt;-</p>]]></content:encoded>
+      
+      
+      
+      
+      <comments>http://example.com/2021/03/05/Rest_ful/#disqus_thread</comments>
+      
+    </item>
+    
+    <item>
+      <title>mybatis</title>
+      <link>http://example.com/2021/03/05/mybatis/</link>
+      <guid>http://example.com/2021/03/05/mybatis/</guid>
+      <pubDate>Fri, 05 Mar 2021 09:17:08 GMT</pubDate>
+      
+        
+        
+      <description>&lt;p&gt;一级缓存和二级缓存：&lt;br&gt;一级缓存（sqlSession）：同一个sqlSession相同的sql语句会接收到这个缓存，sqlSession关闭或者sql语句的update、delete、insert等操作commit后都会清空缓存。&lt;br&gt;二级缓存（基于namespac</description>
+        
+      
+      
+      
+      <content:encoded><![CDATA[<p>一级缓存和二级缓存：<br>一级缓存（sqlSession）：同一个sqlSession相同的sql语句会接收到这个缓存，sqlSession关闭或者sql语句的update、delete、insert等操作commit后都会清空缓存。<br>二级缓存（基于namespace和mapper）</p>]]></content:encoded>
+      
+      
+      
+      
+      <comments>http://example.com/2021/03/05/mybatis/#disqus_thread</comments>
+      
+    </item>
+    
+    <item>
+      <title>JUC notes</title>
+      <link>http://example.com/2021/02/20/JUC/</link>
+      <guid>http://example.com/2021/02/20/JUC/</guid>
+      <pubDate>Sat, 20 Feb 2021 15:07:46 GMT</pubDate>
+      
+        
+        
+      <description>&lt;p&gt;1.请谈谈你对volatile的理解？&lt;/p&gt;
+&lt;p&gt;java虚拟机提供轻量级的同步机制，保证可见性、不保证原子性、禁止指令重排。&lt;/p&gt;
+&lt;p&gt;2.JMM（Java内存模型）：&lt;/p&gt;
+&lt;p&gt;一种规范（线程是在主内存中交换属性的）（可见性（其他线程修改的值，本线程会了解）</description>
+        
+      
+      
+      
+      <content:encoded><![CDATA[<p>1.请谈谈你对volatile的理解？</p><p>java虚拟机提供轻量级的同步机制，保证可见性、不保证原子性、禁止指令重排。</p><p>2.JMM（Java内存模型）：</p><p>一种规范（线程是在主内存中交换属性的）（可见性（其他线程修改的值，本线程会了解）、原子性（不可分割，保证数据的完整一致性、要么一起成功、要么一起失败）、有序性）</p><p>线程解锁前，必须把共享变量的值刷回主内存。</p><p>线程加锁前，必须把最新值加入主内存。</p><p>加锁和解锁是同一把锁</p><p>3.a++不是一种原子性操作？查看字节码</p><p>4.如何解决原子性？</p><p>加syn</p><p>使用JUC包下的Atom类（原子类）（AtomInteger）</p><p>5.防止指令重排？</p><p>通过插入内存屏障禁止在内存屏障前后的指令执行重排序。</p><p>写操作时加入一条store指令，将工作内存的共享变量刷回主内存。（防止上面的普通写和volatile写重排序、防止volatile写和下面的volatile读写重排序）</p><p>读操作时加入一条load指令，从主内存中读取共享变量。（防止下面的读写操作和volatile读操作重排序）</p><p><img src="https://gimg2.baidu.com/image_search/src=http%3A%2F%2Faliyunzixunbucket.oss-cn-beijing.aliyuncs.com%2Fjpg%2F60b12e43a5374792fd4aea815e6ae958.jpg%3Fx-oss-process%3Dimage%2Fresize%2Cp_100%2Fauto-orient%2C1%2Fquality%2Cq_90%2Fformat%2Cjpg%2Fwatermark%2Cimage_eXVuY2VzaGk%3D%2Ct_100&refer=http%3A%2F%2Faliyunzixunbucket.oss-cn-beijing.aliyuncs.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1616227394&t=2df820cb51c05722f54cee8dc3e80cd3"></p><p>6.哪些地方要用volatile？</p><p>单例模式多线程情况下使用，双重检测可能会发生指令重排，因为创建对象会进行分配内存空间、初始化对象、设置intance指向内存空间、此时instance!=null，没有使用volatile初始化和指向内存空间可能会发生指令重排，对象就没有完成初始化。</p><p>7、单例模式饿汉式？<br>synchronized＋双重检测机制。</p><p>8.CAS是什么？（ABA问题）<br>Compare and Set<br>期望值和当前值做对比，如果没有发生改变就可以当做当前没有发生改变，则操作成功，否则重做一次指令。<br>compareandSet（expect，update）</p><p>9.Unsafe？</p><p>CAS依赖于Unsafe类，Unsafe类可以像根据内存偏移地址进行加一操作。因此JVM实现出CAS汇编指令，完全依赖于硬件，从而实现原子性。这种本来就是连续的不会被打断。</p><p>UnSafe＋CAS思想（自旋锁）</p><p>10.CAS缺点</p><p>循环开销大、只能保证一个共享变量的原子操作、ABA问题(使用版本号进行解决)。</p><p>原子引用AtomicReference&lt;类&gt;，原子类的生成。<br>原子时间戳类（用时间戳作为版本号解决ABA问题）AtomicStampedReference类解决，里面有一个stamp和一个类，stamp为时间戳。</p><p>11.线程不安全异常（并发修改异常ConcurrentModificationException）？</p><p>故障现象、导致原因、解决方案、优化建议（同样的错误不犯第二次）</p><p>12.ArrayList线程不安全</p><p>vector线程安全，因为加了synchronized，但并发性急剧下降。</p><p>Collections.synchronizedList(),在Arraylist外层添加一个synchronized表皮，保证原子性。</p><p>copyOnWriteArrayList，这是存在于JUC中的类，解决了原子性问题。先加锁，加锁后获取旧的数组，复制旧数组到新数组，且新数组包含了插入数据，新数组复制回原来的数组中，最后解锁。运用的是读写分离的思想，读写的容器不是同一个容器。</p><p>Set与Arraylist也是一样（Collections。synchronizedSet和CopyOnWriteArraySet（底层还是CopyOnWriteArraylist））。</p><p>hashSet底层是hashMap，hashSet只关心key，不关心value，value是一个常量Object。</p><p>HashMap有ConcurrentHashMap（important）</p><p>13.String=“abc”，是查找常量池中是否有abc字符串，从而创建对象，而方法中查找xxx字符串不关abc字符串的事。</p><p>14.公平锁和非公平锁？<br>ReentrantLock（true or false）</p><p>公平锁即不能够插队，按照申请锁的顺序，非公平锁即能够插队，不一定按照申请锁的顺序，有可能造成优先级翻转和饥饿现象，非公平锁优点在于吞吐量比公平锁大。</p><p>15.可重入锁（递归锁）<br>代码获取了锁，代码中的代码也可以获取到锁，内层自动获取锁，二者的锁是同一把锁。（ReentrantLock和synchronized是可重入锁）<br>作用：避免死锁。加锁几次就需要解锁几次，否则会卡死。</p><p>16.自旋锁：<br>尝试获取锁的线程不会立即阻塞，而是通过循环的方式尝试获取锁，好处减少线程上下文切换的消耗，缺点循环会消耗CPU。</p><p>17.独占锁（写锁）：只能被一个线程持有 共享锁（读锁）：可以被多个线程持有。<br>读写锁（ReentrantReedWriteLock，读锁readlock，写锁writelock）读读共享，读写分离，写写分离。<br>写（原子＋独占）</p><p>18.countdownLatch倒计时发射火箭，即count！=0时，线程阻塞，等于0后，线程执行。使用countdown方法对count进行减一操作。await方法等到count为0线程继续执行。</p><p>19.cyclicBarrier集齐才能发射火箭，即count!=my_count，线程阻塞，加1等于my_count，线程执行，有一个屏障，先到的线程被阻塞。</p><p>20.semaphore信号量，一个用于多个共享资源互斥使用，并发线程的数量控制。acquire相当于占用，release相当于释放。</p><p>21.阻塞队列</p><p>队列＋阻塞队列，</p><p><strong>ArrayBlockQueue：有数组组成的有界阻塞队列。</strong></p><p><strong>LinkedBlockQueue：有链表组成的有界阻塞队列（大小为Integer.MAX_VALUE）。</strong></p><p>PriorityBlockQueue：支持优先级的无界阻塞队列。</p><p>DelayBlockQueue：使用优先级的延迟无界阻塞队列。</p><p><strong>SynchronousQueue：不存储元素的阻塞队列，即单个元素的队列。</strong></p><p>LinkedTransferQueue：有链表组成的无界阻塞队列。</p><p>LinkBlockDeque：有链表组成的双向阻塞队列。</p><p>ArrayBlockQueue：add、remove、element满空时抛出异常，offer、poll、peek满空时返回特殊值，true、false、null，put、take满空时一直阻塞，直到释放。offer（value，time）、poll（value，time）满空时超时就返回特殊值。</p><p>SynchronousQueue，产生一个消费一个。</p><p>22.消费者生产者模式传统要使用while，不能用if，两个才能用if，因为如果是if则不会判断多一次，会导致消费者和生产者破坏掉。</p><p>23.synchronized和lock有什么区别，</p><p>synchronized关键字，属于jvm层面，底层是一个monitor对象，lock是一个具体类。</p><p>synchronized不需要手动释放，lock需要手动释放。如果没有主动释放，会导致死锁现象。</p><p>synchronized不可中断，lock是可以中断，更加灵活。 超时方法trylock超时，lockInterruptibly调用interrupt方法中断。</p><p>加锁是否公平，两者都默认非公平锁，synchronized只能是非公平锁，而lock可以公平也可以非公平。</p><p>锁绑定多个condition，synchronized没有，ReentrantLock用来实现分组唤醒，也可以精确唤醒，而不像synchronized要么唤醒一个线程要么全部唤醒。</p><p>24.新版相比传统的阻塞队列来说，阻塞队列需要自己处理细节，什么时候需要阻塞队列，什么时候需要释放队列。</p><p>25.callable，futureTask（new mythread），new Thread（futureTask，”AA”）;callable建议放到最后，不会阻塞main线程。相比阻塞，循环会好点，所以可以使用while（futuretask.isDone（）），同一个futureTask会复用，不会多执行一次。</p><p>26.线程池的优势</p><p>降低资源消耗速度，重复利用创建的线程来降低消耗。</p><p>提高响应速度，当任务到达时，任务不用等到线程创建就立即执行。</p><p>提高线程可管理性，控制线程数，对线程池进行统一调配。</p><p>27.线程池种类。<br>Executors.newFixedThreadPool固定大小线程池，执行长期任务。</p><p>Executors.newSingleThreadPool一个任务一个线程池。</p><p>Executors.newCacheedThreadPool执行小任务，一个池N个线程。</p><p>ThreadLocalExecutor自定义线程池，上面线程池也是用这个，execute()<br>7大参数，corepoolsize核心线程数，<br>maximumpoolsize最大线程数，只有阻塞队列满了才开启。<br>keepAlivetime保持生存时间，主要是删除除核心线程的其他线程，<br>unit 生存时间单位，<br>workqueue任务队列，<br>threadFactory线程工程，<br>handler拒绝策略（默认AbortPolicy抛出异常，CallerRunsPolicy不抛弃任务，而是回退给调用者，让main自己做，DiscardOldestPolicy抛弃队列等待最久的任务，DiscardPolicy直接丢弃任务）。</p><p>建议使用自定义线程池，因为其他会出现OMM问题，因为里面的阻塞队列几乎是无界。</p><p>28.如何配置合理线程数？<br>CPU密集型：CPU核数+一个线程数，（CPU全速运行），<br>IO密集型：CPU核数*2、CPU核数/1-阻塞系数。（IO经常阻塞，CPU不是全速运行。）</p><p>29.定位死锁线程</p><p>window jqs -l 定位进程号 或者jstack 进程编号</p><p>linux ls -l</p><p>30.lock比较Synchronized来说更加的自由一点，Lock能设置过期时间，而synchronized不能。</p>]]></content:encoded>
+      
+      
+      
+      
+      <comments>http://example.com/2021/02/20/JUC/#disqus_thread</comments>
+      
+    </item>
+    
+    <item>
+      <title>Redis notes</title>
+      <link>http://example.com/2021/02/20/Redis/</link>
+      <guid>http://example.com/2021/02/20/Redis/</guid>
+      <pubDate>Sat, 20 Feb 2021 15:07:46 GMT</pubDate>
+      
+        
+        
+      <description>&lt;p&gt;1.redis五大传统类型的落地应用&lt;br&gt;String&lt;br&gt;list&lt;br&gt;hash&lt;br&gt;set&lt;br&gt;zset&lt;br&gt;bitmap（位图）&lt;br&gt;HyperLogLog（统计）&lt;br&gt;GEO（地理）&lt;br&gt;Steam（流）&lt;/p&gt;
+&lt;p&gt;2.命令不区分大小写，key</description>
+        
+      
+      
+      
+      <content:encoded><![CDATA[<p>1.redis五大传统类型的落地应用<br>String<br>list<br>hash<br>set<br>zset<br>bitmap（位图）<br>HyperLogLog（统计）<br>GEO（地理）<br>Steam（流）</p><p>2.命令不区分大小写，key区分大小写。6379，help @命令</p><p>3.String获取多个键值（MSET）、递增数字（INCR）、字符串长度（STRLEN）、分布式锁（setnx、可以设置多久解锁或者保留值多久）<br>商品编号、订单号、点赞数采用INCR命令生成。</p><p>4.Hash,hmset、hmget（一次多个设置字段值）、删除一个key（hdel）、获取所有字段值（hgetall key）、hincrby（自增）<br>购物车场景</p><p>5.list，左增（lpush）、<br>队列、双向队列、比如：微信订阅关注号</p><p>6.set，增加（sadd）、删除（SREM）、罗列（Smembers）、判断是否在集合里（SISMEMBER）、SPOP（随机弹出一个属性并删除）、SCARD（获取个数）、SRANDMEMBER（随机弹出一个属性不删除）、差集（SDIFF）、交集（SINTER）、并集（SUNION）<br>应用场景：微信抽奖小程序、QQ可能认识的人、微博互相关注、微信点赞</p><p>7.zset，增加（zadd）、获取一段数据（ZRANGE）<br>应用场景：抖音热搜、商品销售量</p><p>8.Redis分布式锁：redis是单线程的，redLock、</p><p>9.Redis单点部署问题：</p><p>10.nginx：是一个高性能的HTTP和反向代理web服务器<br>Tomcat运行在JVM之上，它和HTTP服务器一样，绑定IP地址并监听TCP端口，同时还包含以下指责：管理Servlet程序的生命周期将URL映射到指定的Servlet进行处理与Servlet程序合作处理HTTP请求——根据HTTP请求生成HttpServletResponse对象并传递给Servlet进行处理，将Servlet中的HttpServletResponse对象生成的内容返回给浏览器虽然</p><p>Tomcat也可以认为是HTTP服务器，但通常它仍然会和Nginx配合在一起使用：</p><p>动静态资源分离——运用Nginx的反向代理功能分发请求：所有动态资源的请求交给Tomcat，而静态资源的请求（例如图片、视频、CSS、JavaScript文件等）则直接由Nginx返回到浏览器，这样能大大减轻Tomcat的压力。负载均衡，当业务压力增大时，可能一个Tomcat的实例不足以处理，那么这时可以启动多个Tomcat实例进行水平扩展，而Nginx的负载均衡功能可以把请求通过算法分发到各个不同的实例进行处理</p><p>11.先配置redisConfig，直接使用RedisTemple来编辑Controller。</p><p>单机版需要加Redis分布式锁，Redis的set可以实现加锁操作，setnx加key当不存在时，所以这个可以当做是分布式锁。finally释放锁。宕机了，走不到finally，可以设置一个有时间期限的key，考虑到原子性问题：原先的命令SetIfAbsent(lock)改为SetIfAbsent(lock,time),过期时间太短，没做完就删除了key，之后又会删除别人的key，判断key值才可以去删除，但是finally判断和del删除不是原子性的，可以用lua脚本，但是不给用，也可以用Redis事务，MULTI（开启事务命令）、EXEC（结束事务命令）、WATCH（监控）、UNWATCH（解除监控）、WATCH值被修改，EXEC不能成功提交，由此可以使用事务（lua脚本：获取Jedis对象，编写lua脚本，jedis调用eval调用lua脚本），Redis缓存续命（最好情况，自己写）：集群的Redis出现主从复制问题造成锁丢失（保证高可用），但zookeeper（CP，保证高一致性）同步完成才可以运行。RedisSon（Redis的java分布式锁，Redis在JUC包的加强版）RLock对象从redisson获取，调用lock方法和unlock方法，有可能会出现一个不能被当前线程解锁的错误，所以还要进行判断是否被锁且被当前线程锁的。</p><p>12.Redis过期淘汰策略：<br>Redis定时删除是立即删除的（CPU太累了还要开启线程解决过期的key）<br>Redis惰性删除，对内存不友好，CPU友好。<br>Redis定期删除，每隔一段时间执行一次删除过期操作，需要合理设置执行时长和执行频率。</p><p>查看Redis最大内存配置，没配不限制大小，32位限制3GB。建议最大内存的3/4，可以用配置文件设置，也可以通过命令config set maxmemory来配置，info memory查看目前配置，如果内存爆了会出现OOM。</p><p>LRU和LFU和TTL</p><p>13.偷懒版LRU，LinkedHashMap（双向链表＋HashMap）。</p><p>14.Redis为什么是单线程的？</p><p>1.官方答案</p><p>因为Redis是基于内存的操作，CPU不是Redis的瓶颈，Redis的瓶颈最有可能是机器内存的大小或者网络带宽。既然单线程容易实现，而且CPU不会成为瓶颈，那就顺理成章地采用单线程的方案了。</p><p>LRU：Least Recently Used 最近最少使用</p><p>LFU：Least frenquently used 最不经常使用</p><p>FIFO：先进先出</p><p>3.详细原因</p><p>1）不需要各种锁的性能消耗<br>2）单线程多进程集群方案<br>3）CPU消耗</p><p>redis 采用网络IO多路复用技术来保证在多连接的时候， 系统的高吞吐量。</p><p>多路-指的是多个socket连接，复用-指的是复用一个线程。多路复用主要有三种技术：select，poll，epoll。epoll是最新的也是目前最好的多路复用技术。</p>]]></content:encoded>
+      
+      
+      
+      
+      <comments>http://example.com/2021/02/20/Redis/#disqus_thread</comments>
+      
+    </item>
+    
+    <item>
+      <title>JVM notes</title>
+      <link>http://example.com/2021/02/20/JVM/</link>
+      <guid>http://example.com/2021/02/20/JVM/</guid>
+      <pubDate>Sat, 20 Feb 2021 15:07:46 GMT</pubDate>
+      
+        
+        
+      <description>&lt;p&gt;1.类装载器&lt;br&gt;双亲委派机制&lt;br&gt;类。。安全机制&lt;/p&gt;
+&lt;p&gt;2.引用计数法、复制算法（年轻代，内存只有原来的一半）、标记清除（产生内存碎片）、标记整理（需要支付移动对象的成本）&lt;/p&gt;
+&lt;p&gt;3.判断是否被回收、引用计数法、枚举根节点做可达性分析（从GCROOT向</description>
+        
+      
+      
+      
+      <content:encoded><![CDATA[<p>1.类装载器<br>双亲委派机制<br>类。。安全机制</p><p>2.引用计数法、复制算法（年轻代，内存只有原来的一半）、标记清除（产生内存碎片）、标记整理（需要支付移动对象的成本）</p><p>3.判断是否被回收、引用计数法、枚举根节点做可达性分析（从GCROOT向下查找对象，如果对象没有引用链就被判定为死亡，如果GCroot没有连接到对象，对象相互引用也是无用的）。</p><p>4.可以作为GCroot对象（虚拟机栈对象、方法区类静态属性对象、方法区常量对象、本地方法栈native方法引用对象）</p><p>5.如何查看JVM系统默认值？jps和jinfo -flags</p><p>标配参数(version/help/showversion)、x参数(-Xint解释执行/-Xcomp第一次使用就编译本地代码/-Xmixed混合模式先编译再执行)、XX参数(Boolean类型（-XX:+-某个属性值（+printGCDetails查看GC进程细节））、KV类型（属性key=属性value）)</p><p>6.经典参数-Xms和-Xmx？<br>-Xms = -XX：InitialHeapSize<br>-Xmx = -XX：MaxHeapSize</p><p>7.查看JVM默认值？<br>java -XX：+PrintFlagsIntial 最原先的默认值<br>java -XX：+PrintFlagsFinal T（运行java类的名字） 修改后的值（有：=为修改过的值）</p><p>8.平时工作JVM常用的配置参数有哪些？-Xms（物理内存1/64） 、 -Xmx(物理内存1/4) 、<br>-Xss(单个线程栈大小，一般为512K-1024K，-XX：ThreadStackSize) 、 -Xmn（设置年轻代大小）<br>-XX：MetaspaceSize（设置元空间大小，元空间与永久代类似，都是JVM规范实现，最大区别是元空间不在虚拟机中，而是使用本地内存，元空间受制于本地内存，避免出现OOM的一种）<br>-XX：+printGCDetails（查看GC进程细节，GC和FullGC可以百度自己查找GC内存信息）<br>-XX：SurvivorRatio 设置新生代eden区和s0/s1空间的比例。<br>-XX：NewRatio设置新生代和老年代空间的比例<br>-XX：MaxTenuringThreshold：设置垃圾的最大年龄</p><p>9.强引用Reference，当内存不足的时候，就算OOM也不会进行垃圾回收（一般就是普通对象）。</p><p>软引用SoftReference，内存不足的时候就会回收，充足就不会回收。SoftReference<Object>，类似于缓存。</p><p>弱引用WeakReference，只要有GC就一定会被回收，WeakHashMap，类似于hashMap，但是如果key值为null值后，就会被gc清除掉。</p><p>虚引用PhantomReference，如果一个对象有虚引用，那么它和没有任何引用一样，任何时候都可能被垃圾回收器回收。主要作用是跟踪对象。作用：可以当对象进入finalization状态时，在内存中清除出去之前做必要的清理工作。当对象被gc就会放到一个引用队列里，队列里都是虚引用，跟踪状态。</p><p>10.异常<br>StackOverflow栈满了，是一种错误，方法递归可能。</p><p>OOM异常，是一种错误，JavaHeapSpace，堆爆了，对象太多了，出现了问题。</p><p>OOM异常，GC overhead limit exceeded，大量资源用作GC，GC却没有效果。</p><p>OOM异常，Direct buffer memory，NIO使用ByteBuffer读取数据，可以使用Native函数库分配堆外内存，因为不用频繁复制，所以很快，但是不归JVM管，当本地内存不够用时就会出现这个异常。</p><p>OOM异常，unable to create new native thread，创建了太多的线程，可以考虑是否需要这么多个异常，第二提高linux承载线程数。linux在etc/security/limits.d/90-nproc.conf中设置这个linux数量。</p><p>OOM：MetaSapce：metaspace主要存放的信息：虚拟机加载的类信息、常量池、静态变量、即时编译后的代码。</p><p>11.GC算法是垃圾回收的方法论，垃圾收集器是算法实现的器具。<br>Serial串行（使用一个线程进行垃圾回收，会暂停所有的用户线程，不适合服务器环境）<br>Parallel并行（多个垃圾收集器并行工作，用户线程是暂停的，适合科学计算）<br>CMS（并发标记垃圾收集器，不一定并行，可以交替执行）<br>G1（将堆内存分割成不同区域然后并发对其进行垃圾回收）</p><p>java-XX：PrintCommandLineFlags -version 查看默认垃圾收集器</p><p>默认的垃圾收集器有哪些：</p><p>UseSerialGC（效率最高但是会暂停，新生代会Serial Copying，老年代Serial MSC）、</p><p>UseParallelGC、<br>UseConcMarkSweepGC、</p><p>UseParNewGC（串行的并行版本）、UseParallelOldGC、UseG1GC。<br>G1兼顾新生代和老年代。<br>新生代（Serial Copying、Parallel Scavenge、ParNew）<br>老年代（Serial MSC、Parallel Compacting、CMS）</p><p>server模式、client模式</p><p>12.串行GC、并行GC（只有新生代并行）、并行GC（UseParallelGC新生代和老年代都是并行）、SerialOld（年老代的串行版本、标记整理算法）</p><p>CMS（并发标记清除收集器，比较适合互联网、因为响应速度快，停顿时间最短）（初始标记、并发标记、重新标记、并发清除）（优点停顿低、缺点并发执行会增加堆内存压力，同时CMS在老年代要尽快在堆内存用完前使用垃圾回收，否则CMS失败，将触发担保机制、串行老年代收集器会以SWT的方式进行一次GC，会造成较大的停顿时间，同时会出现空间碎片，几次之后可以进行压缩空间）。</p><p>13.如何选择垃圾收集器？<br>单CPU或小内存，SerialGC<br>多CPU，需要大吞吐量，如后台计算型应用，UseParallerGC或者UseParallelOldGC<br>多CPU需要低停顿CMS。</p><p>14.G1收集器？<br>面向服务端的垃圾收集器。<br>不会出现产生很多碎片、预测停顿时间（停顿时间更短）<br>区域化Region，整体避免了全内存区的GC操作，eden等区不是连续的了。有一个特殊的区域叫humongous（极大对象，类似Old区）<br>eden-&gt;survivor-&gt;old</p><p>四步过程：初始标记（只标记GCRoot关联对象）、并发标记（进行GCRoots Tracing）、最终标记（修正并发标记期间，因程序运行导致标记发生变化的那一部分对象）、筛选回收（根据时间进行价值最大化回收）</p><p>参数：G1HeapRegionSize（G1区域大小）、MaxGCPauseMills（最大停顿时间）、InitiatingHeapOccurpancyPercant（堆占用多少空间进行GC）、ConcGCThread（并发GC使用线程数）</p><p>15.G1和CMS收集器有什么区别？<br>G1没有内存碎片、G1可以指定精确停顿时间。</p><p>16.JVM+Springboot调优<br>1打包war包<br>2终端-&gt;java -server 调优参数 war包</p><p>17.生产环境服务器变慢、诊断思路和性能评估谈谈</p><p>top 查看进程，看CPU和内存，看哪个进程高于60%，变慢的理由。</p><p>vmstat -n 2 3（每两秒采样3次）查看CPU，us（用户）+sy（系统）大于80%说明CPU不足。</p><p>pidstat -u 1 -p pid 查看每个进程CPU分解信息</p><p>free -m 查看内存</p><p>df -h 硬盘还剩多少</p><p>iostat 磁盘io性能评估（看util：有n%用于磁盘IO，越大越好）</p><p>ifstat 网络IO性能评估</p><p>操作：top命令找到最高CPU、，ps -ef进一步定位，定位到具体线程，ps -mp 进程号 -o THREAD，tid，time，线程id转化为16进制，jstack 进程ID |grep tid（16进制线程ID小写英文） -A60（前60行）</p>]]></content:encoded>
+      
+      
+      
+      
+      <comments>http://example.com/2021/02/20/JVM/#disqus_thread</comments>
+      
+    </item>
+    
+    <item>
+      <title>Docker notes</title>
+      <link>http://example.com/2021/02/20/docker/</link>
+      <guid>http://example.com/2021/02/20/docker/</guid>
+      <pubDate>Sat, 20 Feb 2021 15:07:46 GMT</pubDate>
+      
+        
+        
+      <description>&lt;p&gt;Docker search搜索&lt;/p&gt;
+&lt;p&gt;Docker pull下载&lt;/p&gt;
+&lt;p&gt;Docker images列出所有下载&lt;/p&gt;
+&lt;p&gt;Docker rmi删除镜像、-f强制删除&lt;/p&gt;
+&lt;p&gt;docker run -p 80:80 –name nginx -d ng</description>
+        
+      
+      
+      
+      <content:encoded><![CDATA[<p>Docker search搜索</p><p>Docker pull下载</p><p>Docker images列出所有下载</p><p>Docker rmi删除镜像、-f强制删除</p><p>docker run -p 80:80 –name nginx -d nginx:1.17.0 新建新的容器</p><p>-d选项：表示后台运行</p><p>–name选项：指定运行后容器的名字为nginx,之后可以通过名字来操作容器</p><p>-p选项：指定端口映射，格式为：hostPort:containerPort</p><p>Docker ps列出现在运行的容器</p><p>Docker ps -a列出所有容器</p><p>Docker stop $ContainerName(或者$ContainerId)停止容器</p><p>docker kill $ContainerName(或者$ContainerId)强制停止容器</p><p>docker start $ContainerName(或者$ContainerId)启动已停止的容器</p><p>docker inspect –format ““ $ContainerName(或者$ContainerId)查询容器pid</p><p>nsenter –target “$pid” –mount –uts –ipc –net –pid根据pid进入容器</p><p>docker rm $ContainerName(或者$ContainerId)删除容器</p><p>docker rm -f $(docker ps -a -q)强制删除所有容器</p><p>docker logs $ContainerName(或者$ContainerId)查看当前全部日志</p><p>docker logs $ContainerName(或者$ContainerId) -f动态查看当前日志</p><p>docker inspect –format ‘‘ $ContainerName(或者$ContainerId）查看容器的ip地址</p><p>docker container update –restart=always $ContainerName修改容器启动方式</p><p>docker cp /etc/localtime $ContainerName(或者$ContainerId):/etc/同步宿主机时间到容器</p><p>docker run -p 80:80 –name nginx \ -e TZ=”Asia/Shanghai” \ -d nginx:1.17.0指定容器时区</p><p>docker stats $ContainerName(或者$ContainerId)查看容器使用cpu、内存、网络、io情况</p><p>docker stats -a查看所有情况</p><p>docker system df查看docker磁盘使用情况</p><p>docker exec -it $ContainerName /bin/bash进入docker容器内部的bash</p><p>docker exec -it –user root $ContainerName /bin/bash使用root账号进入docker容器内部</p><p>docker network create -d bridge my-bridge-network  Docker创建外部网络</p><p>修改Docker存放镜像位置</p><p>docker info | grep “Docker Root Dir” 查看Docker存放镜像位置</p><p>systemctl stop docker关闭docker服务</p><p>mv /var/lib/docker /mydata/docker移动目录到目标路径</p><p>ln -s /mydata/docker /var/lib/docker建立软连接</p><p>2.Docker下运行Java程序</p><p>1.创建springboot项目</p><p>2.打包springboot项目为jar包</p><p>3 编写Dockerfile文件</p><blockquote><pre><code># Docker image for springboot file run# VERSION 0.0.1# Author: eangulee# 基础镜像使用javaFROM java:8# 作者MAINTAINER eangulee &lt;eangulee@gmail.com&gt;# VOLUME 指定了临时文件目录为/tmp。# 其效果是在主机 /var/lib/docker 目录下创建了一个临时文件，并链接到容器的/tmpVOLUME /tmp # 将jar包添加到容器中并更名为app.jarADD demo-0.0.1-SNAPSHOT.jar app.jar # 运行jar包RUN bash -c &#39;touch /app.jar&#39;ENTRYPOINT [&quot;java&quot;,&quot;-Djava.security.egd=file:/dev/./urandom&quot;,&quot;-jar&quot;,&quot;/app.jar&quot;]</code></pre><p>VOLUME 指定了临时文件目录为/tmp。其效果是在主机 /var/lib/docker 目录下创建了一个临时文件，并链接到容器的/tmp。该步骤是可选的，如果涉及到文件系统的应用就很有必要了。/tmp目录用来持久化到 Docker 数据文件夹，因为 Spring Boot 使用的内嵌 Tomcat 容器默认使用/tmp作为工作目录</p></blockquote><p>项目的 jar 文件作为 “app.jar” 添加到容器的</p><p>ENTRYPOINT 执行项目 app.jar。为了缩短 Tomcat 启动时间，添加一个系统属性指向 “/dev/./urandom” 作为 Entropy Source</p><p>4 部署文件<br><img src="https://upload-images.jianshu.io/upload_images/15536448-9af07900b7686a79.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/360/format/webp"></p><p>5.制作镜像</p><p>docker build -t springbootdemo4docker .<br>-t 参数是指定此镜像的tag名</p><p>6.启动容器</p><p>[root@localhost docker]# docker run -d -p 8080:8085 springbootdemo4docker</p><p>-d参数是让容器后台运行 </p><p>-p 是做端口映射，此时将服务器中的8080端口映射到容器中的8085(项目中端口配置的是8085)端口</p><p>7.访问网站</p>]]></content:encoded>
+      
+      
+      
+      
+      <comments>http://example.com/2021/02/20/docker/#disqus_thread</comments>
+      
+    </item>
+    
+    <item>
+      <title>Github notes</title>
+      <link>http://example.com/2021/02/20/github/</link>
+      <guid>http://example.com/2021/02/20/github/</guid>
+      <pubDate>Sat, 20 Feb 2021 15:07:46 GMT</pubDate>
+      
+        
+        
+      <description>&lt;p&gt;watch持续动态&lt;br&gt;Fork复制项目&lt;br&gt;star点赞&lt;br&gt;clone克隆&lt;br&gt;follow关注感兴趣作者&lt;/p&gt;
+&lt;p&gt;in查找&lt;br&gt;关键词 in：name，readme，description&lt;br&gt;star/fork 查找&lt;br&gt;关键词 stars（fo</description>
+        
+      
+      
+      
+      <content:encoded><![CDATA[<p>watch持续动态<br>Fork复制项目<br>star点赞<br>clone克隆<br>follow关注感兴趣作者</p><p>in查找<br>关键词 in：name，readme，description<br>star/fork 查找<br>关键词 stars（fork）:&gt;= 数量（100..200在100到200之间） </p><p>awesome加强搜索 awesome 关键字</p><p>高亮显示 url#L13 第13行（多行#L16-L19）</p><p>项目内搜索 </p><p>搜索某个地区的大佬：location:地区 language:语言</p>]]></content:encoded>
+      
+      
+      
+      
+      <comments>http://example.com/2021/02/20/github/#disqus_thread</comments>
+      
+    </item>
+    
+    <item>
+      <title>hexo notes</title>
+      <link>http://example.com/2021/02/20/hexo/</link>
+      <guid>http://example.com/2021/02/20/hexo/</guid>
+      <pubDate>Sat, 20 Feb 2021 15:07:46 GMT</pubDate>
+      
+        
+        
+      <description>&lt;p&gt;从零开始搭建博客&lt;/p&gt;
+&lt;p&gt;以hexo为主搭建的博客&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;https://pic4.zhimg.com/v2-a976b66ff0540936624b284730a88d97_1440w.jpg?source=172ae18b&quot;&gt;&lt;/p&gt;
+</description>
+        
+      
+      
+      
+      <content:encoded><![CDATA[<p>从零开始搭建博客</p><p>以hexo为主搭建的博客</p><p><img src="https://pic4.zhimg.com/v2-a976b66ff0540936624b284730a88d97_1440w.jpg?source=172ae18b"></p><p><a href="https://zhuanlan.zhihu.com/p/102592286?tdsourcetag=s_pctim_aiomsg" title="搭建博客详细步骤">https://zhuanlan.zhihu.com/p/102592286?tdsourcetag=s_pctim_aiomsg</a></p><p>别人的，但写得很好，分享一下</p><p>hexo clean</p><p>hexo g</p><p>hexo d</p>]]></content:encoded>
+      
+      
+      
+      
+      <comments>http://example.com/2021/02/20/hexo/#disqus_thread</comments>
+      
+    </item>
+    
+  </channel>
+</rss>

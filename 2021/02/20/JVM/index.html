@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="1.类装载器双亲委派机制类。。安全机制 2.引用计数法、复制算法（年轻代，内存只有原来的一半）、标记清除（产生内存碎片）、标记整理（需要支付移动对象的成本） 3.判断是否被回收、引用计数法、枚举根节点做可达性分析（从GCROOT向下查找对象，如果对象没有引用链就被判定为死亡，如果GCroot没有连接到对象，对象相互引用也是无用的）。 4.可以作为GCroot对象（虚拟机栈对象、方法区类静态属性对象">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JVM notes">
+<meta property="og:url" content="http://example.com/2021/02/20/JVM/index.html">
+<meta property="og:site_name" content="Pro屋">
+<meta property="og:description" content="1.类装载器双亲委派机制类。。安全机制 2.引用计数法、复制算法（年轻代，内存只有原来的一半）、标记清除（产生内存碎片）、标记整理（需要支付移动对象的成本） 3.判断是否被回收、引用计数法、枚举根节点做可达性分析（从GCROOT向下查找对象，如果对象没有引用链就被判定为死亡，如果GCroot没有连接到对象，对象相互引用也是无用的）。 4.可以作为GCroot对象（虚拟机栈对象、方法区类静态属性对象">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-02-20T15:07:46.000Z">
+<meta property="article:modified_time" content="2021-02-20T15:11:09.485Z">
+<meta property="article:author" content="Professor">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/2021/02/20/JVM/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>JVM notes | Pro屋</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/rss2.xml" title="Pro屋" type="application/rss+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+	<a target="_blank" rel="noopener" href="https://github.com/prowhos"><img style="position: absolute; top: 0; left: 0; border: 0;" src="https://camo.githubusercontent.com/82b228a3648bf44fc1163ef44c62fcc60081495e/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f6c6566745f7265645f6161303030302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_left_red_aa0000.png"></a>
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Pro屋</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/02/20/JVM/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Professor">
+      <meta itemprop="description" content="选择有时候比努力更重要">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Pro屋">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          JVM notes
+        </h1>
+
+        <div class="post-meta">
+		  
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2021-02-20 23:07:46 / 修改时间：23:11:09" itemprop="dateCreated datePublished" datetime="2021-02-20T23:07:46+08:00">2021-02-20</time>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2021/02/20/JVM/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2021/02/20/JVM/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>1.类装载器<br>双亲委派机制<br>类。。安全机制</p>
+<p>2.引用计数法、复制算法（年轻代，内存只有原来的一半）、标记清除（产生内存碎片）、标记整理（需要支付移动对象的成本）</p>
+<p>3.判断是否被回收、引用计数法、枚举根节点做可达性分析（从GCROOT向下查找对象，如果对象没有引用链就被判定为死亡，如果GCroot没有连接到对象，对象相互引用也是无用的）。</p>
+<p>4.可以作为GCroot对象（虚拟机栈对象、方法区类静态属性对象、方法区常量对象、本地方法栈native方法引用对象）</p>
+<p>5.如何查看JVM系统默认值？jps和jinfo -flags</p>
+<p>标配参数(version/help/showversion)、x参数(-Xint解释执行/-Xcomp第一次使用就编译本地代码/-Xmixed混合模式先编译再执行)、XX参数(Boolean类型（-XX:+-某个属性值（+printGCDetails查看GC进程细节））、KV类型（属性key=属性value）)</p>
+<p>6.经典参数-Xms和-Xmx？<br>-Xms = -XX：InitialHeapSize<br>-Xmx = -XX：MaxHeapSize</p>
+<p>7.查看JVM默认值？<br>java -XX：+PrintFlagsIntial 最原先的默认值<br>java -XX：+PrintFlagsFinal T（运行java类的名字） 修改后的值（有：=为修改过的值）</p>
+<p>8.平时工作JVM常用的配置参数有哪些？-Xms（物理内存1/64） 、 -Xmx(物理内存1/4) 、<br>-Xss(单个线程栈大小，一般为512K-1024K，-XX：ThreadStackSize) 、 -Xmn（设置年轻代大小）<br>-XX：MetaspaceSize（设置元空间大小，元空间与永久代类似，都是JVM规范实现，最大区别是元空间不在虚拟机中，而是使用本地内存，元空间受制于本地内存，避免出现OOM的一种）<br>-XX：+printGCDetails（查看GC进程细节，GC和FullGC可以百度自己查找GC内存信息）<br>-XX：SurvivorRatio 设置新生代eden区和s0/s1空间的比例。<br>-XX：NewRatio设置新生代和老年代空间的比例<br>-XX：MaxTenuringThreshold：设置垃圾的最大年龄</p>
+<p>9.强引用Reference，当内存不足的时候，就算OOM也不会进行垃圾回收（一般就是普通对象）。</p>
+<p>软引用SoftReference，内存不足的时候就会回收，充足就不会回收。SoftReference<Object>，类似于缓存。</p>
+<p>弱引用WeakReference，只要有GC就一定会被回收，WeakHashMap，类似于hashMap，但是如果key值为null值后，就会被gc清除掉。</p>
+<p>虚引用PhantomReference，如果一个对象有虚引用，那么它和没有任何引用一样，任何时候都可能被垃圾回收器回收。主要作用是跟踪对象。作用：可以当对象进入finalization状态时，在内存中清除出去之前做必要的清理工作。当对象被gc就会放到一个引用队列里，队列里都是虚引用，跟踪状态。</p>
+<p>10.异常<br>StackOverflow栈满了，是一种错误，方法递归可能。</p>
+<p>OOM异常，是一种错误，JavaHeapSpace，堆爆了，对象太多了，出现了问题。</p>
+<p>OOM异常，GC overhead limit exceeded，大量资源用作GC，GC却没有效果。</p>
+<p>OOM异常，Direct buffer memory，NIO使用ByteBuffer读取数据，可以使用Native函数库分配堆外内存，因为不用频繁复制，所以很快，但是不归JVM管，当本地内存不够用时就会出现这个异常。</p>
+<p>OOM异常，unable to create new native thread，创建了太多的线程，可以考虑是否需要这么多个异常，第二提高linux承载线程数。linux在etc/security/limits.d/90-nproc.conf中设置这个linux数量。</p>
+<p>OOM：MetaSapce：metaspace主要存放的信息：虚拟机加载的类信息、常量池、静态变量、即时编译后的代码。</p>
+<p>11.GC算法是垃圾回收的方法论，垃圾收集器是算法实现的器具。<br>Serial串行（使用一个线程进行垃圾回收，会暂停所有的用户线程，不适合服务器环境）<br>Parallel并行（多个垃圾收集器并行工作，用户线程是暂停的，适合科学计算）<br>CMS（并发标记垃圾收集器，不一定并行，可以交替执行）<br>G1（将堆内存分割成不同区域然后并发对其进行垃圾回收）</p>
+<p>java-XX：PrintCommandLineFlags -version 查看默认垃圾收集器</p>
+<p>默认的垃圾收集器有哪些：</p>
+<p>UseSerialGC（效率最高但是会暂停，新生代会Serial Copying，老年代Serial MSC）、</p>
+<p>UseParallelGC、<br>UseConcMarkSweepGC、</p>
+<p>UseParNewGC（串行的并行版本）、UseParallelOldGC、UseG1GC。<br>G1兼顾新生代和老年代。<br>新生代（Serial Copying、Parallel Scavenge、ParNew）<br>老年代（Serial MSC、Parallel Compacting、CMS）</p>
+<p>server模式、client模式</p>
+<p>12.串行GC、并行GC（只有新生代并行）、并行GC（UseParallelGC新生代和老年代都是并行）、SerialOld（年老代的串行版本、标记整理算法）</p>
+<p>CMS（并发标记清除收集器，比较适合互联网、因为响应速度快，停顿时间最短）（初始标记、并发标记、重新标记、并发清除）（优点停顿低、缺点并发执行会增加堆内存压力，同时CMS在老年代要尽快在堆内存用完前使用垃圾回收，否则CMS失败，将触发担保机制、串行老年代收集器会以SWT的方式进行一次GC，会造成较大的停顿时间，同时会出现空间碎片，几次之后可以进行压缩空间）。</p>
+<p>13.如何选择垃圾收集器？<br>单CPU或小内存，SerialGC<br>多CPU，需要大吞吐量，如后台计算型应用，UseParallerGC或者UseParallelOldGC<br>多CPU需要低停顿CMS。</p>
+<p>14.G1收集器？<br>面向服务端的垃圾收集器。<br>不会出现产生很多碎片、预测停顿时间（停顿时间更短）<br>区域化Region，整体避免了全内存区的GC操作，eden等区不是连续的了。有一个特殊的区域叫humongous（极大对象，类似Old区）<br>eden-&gt;survivor-&gt;old</p>
+<p>四步过程：初始标记（只标记GCRoot关联对象）、并发标记（进行GCRoots Tracing）、最终标记（修正并发标记期间，因程序运行导致标记发生变化的那一部分对象）、筛选回收（根据时间进行价值最大化回收）</p>
+<p>参数：G1HeapRegionSize（G1区域大小）、MaxGCPauseMills（最大停顿时间）、InitiatingHeapOccurpancyPercant（堆占用多少空间进行GC）、ConcGCThread（并发GC使用线程数）</p>
+<p>15.G1和CMS收集器有什么区别？<br>G1没有内存碎片、G1可以指定精确停顿时间。</p>
+<p>16.JVM+Springboot调优<br>1打包war包<br>2终端-&gt;java -server 调优参数 war包</p>
+<p>17.生产环境服务器变慢、诊断思路和性能评估谈谈</p>
+<p>top 查看进程，看CPU和内存，看哪个进程高于60%，变慢的理由。</p>
+<p>vmstat -n 2 3（每两秒采样3次）查看CPU，us（用户）+sy（系统）大于80%说明CPU不足。</p>
+<p>pidstat -u 1 -p pid 查看每个进程CPU分解信息</p>
+<p>free -m 查看内存</p>
+<p>df -h 硬盘还剩多少</p>
+<p>iostat 磁盘io性能评估（看util：有n%用于磁盘IO，越大越好）</p>
+<p>ifstat 网络IO性能评估</p>
+<p>操作：top命令找到最高CPU、，ps -ef进一步定位，定位到具体线程，ps -mp 进程号 -o THREAD，tid，time，线程id转化为16进制，jstack 进程ID |grep tid（16进制线程ID小写英文） -A60（前60行）</p>
+
+    </div>
+
+    
+    
+    
+
+	
+        <div class="reward-container">
+  <div>原创技术分享，您的支持将鼓励我继续创作</div>
+  <button onclick="var qr = document.getElementById('qr'); qr.style.display = (qr.style.display === 'none') ? 'block' : 'none';">
+    打赏
+  </button>
+  <div id="qr" style="display: none;">
+      
+      <div style="display: inline-block;">
+        <img src="/images/wechatpay.jpg" alt="Professor 微信支付">
+        <p>微信支付</p>
+      </div>
+      
+      <div style="display: inline-block;">
+        <img src="/images/alipay.jpg" alt="Professor 支付宝">
+        <p>支付宝</p>
+      </div>
+
+  </div>
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Professor
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://example.com/2021/02/20/JVM/" title="JVM notes">http://example.com/2021/02/20/JVM/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener" target="_blank"><i class="fab fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/images/wechat_channel.jpg">
+            <span class="icon">
+              <i class="wechat"></i>
+            </span>
+
+            <span class="label">WeChat</span>
+          </a>
+        </div>
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="/atom.xml">
+            <span class="icon">
+              <i class="rss"></i>
+            </span>
+
+            <span class="label">RSS</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/02/20/docker/" rel="prev" title="Docker notes">
+      <i class="fa fa-chevron-left"></i> Docker notes
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/02/20/Redis/" rel="next" title="Redis notes">
+      Redis notes <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Professor"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Professor</p>
+  <div class="site-description" itemprop="description">选择有时候比努力更重要</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">17</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/prowhos" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;prowhos" rel="noopener" target="_blank"><i class="github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="/1061835761@qq.com" title="E-Mail → 1061835761@qq.com"><i class="envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll motion-element">
+    <div class="links-of-blogroll-title"><i class="link fa-fw"></i>
+      链接网站
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="https://baidu.com/" title="https:&#x2F;&#x2F;baidu.com" rel="noopener" target="_blank">百度</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://fishc.com.cn/" title="https:&#x2F;&#x2F;fishc.com.cn" rel="noopener" target="_blank">鱼C论坛</a>
+        </li>
+    </ul>
+  </div>
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2021-02 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Professor</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+<div class="theme-info">
+  <div class="powered-by"></div>
+  <span class="post-count">博客全站共13.1k字</span>
+</div>
+
+    <script async src="//dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+    <span id="busuanzi_container_site_pv">总访问量<span id="busuanzi_value_site_pv"></span>次</span>
+    <span class="post-meta-divider">|</span>
+    <span id="busuanzi_container_site_uv">总访客数<span id="busuanzi_value_site_uv"></span>人</span>
+    <span class="post-meta-divider">|</span>
+<!-- 不蒜子计数初始值纠正 -->
+<script>
+$(document).ready(function() {
+
+    var int = setInterval(fixCount, 50);  // 50ms周期检测函数
+    var countOffset = 20000;  // 初始化首次数据
+
+    function fixCount() {            
+       if (document.getElementById("busuanzi_container_site_pv").style.display != "none")
+        {
+            $("#busuanzi_value_site_pv").html(parseInt($("#busuanzi_value_site_pv").html()) + countOffset); 
+            clearInterval(int);
+        }                  
+        if ($("#busuanzi_container_site_pv").css("display") != "none")
+        {
+            $("#busuanzi_value_site_uv").html(parseInt($("#busuanzi_value_site_uv").html()) + countOffset); // 加上初始数据 
+            clearInterval(int); // 停止检测
+        }  
+    }
+       	
+});
+</script> 
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  
+  <script color='0,0,255' opacity='0.5' zIndex='-1' count='99' src="/lib/canvas-nest/canvas-nest.min.js"></script>
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+  <script defer src="/lib/three/three.min.js"></script>
+    <script defer src="/lib/three/canvas_lines.min.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : 'oy1PzDETi8tnLYwHBL8wUnA0-gzGzoHsz',
+      appKey     : 'R4qDlBb37Qlsz72QnzzV5BEx',
+      placeholder: "Just go go",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : false,
+      lang       : '' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>
